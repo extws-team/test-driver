@@ -8,6 +8,18 @@ import WebSocket       from 'ws';
 
 let ws_client;
 
+function messageStringify(message) {
+	if (typeof message === 'string') {
+		return message;
+	}
+
+	if (Buffer.isBuffer(message) === true) {
+		return message.toString();
+	}
+
+	throw new Error('Invalid message');
+}
+
 describe('ExtWS using ws', () => {
 	it('client connect', () => {
 		ws_client = new WebSocket('ws://localhost:18365/ws');
@@ -25,11 +37,7 @@ describe('ExtWS using ws', () => {
 				ws_client.once(
 					'message',
 					(message) => {
-						if (Buffer.isBuffer(message) === true) {
-							message = message.toString();
-						}
-
-						if (message.startsWith('1{') === true) {
+						if (messageStringify(message).startsWith('1{') === true) {
 							resolve();
 						}
 						else {
@@ -72,12 +80,8 @@ describe('ExtWS using ws', () => {
 			ws_client.once(
 				'message',
 				(message) => {
-					if (Buffer.isBuffer(message) === true) {
-						message = message.toString();
-					}
-
 					strictEqual(
-						message,
+						messageStringify(message),
 						'4{"foo":"bar"}',
 					);
 
@@ -99,12 +103,8 @@ describe('ExtWS using ws', () => {
 				ws_client.once(
 					'message',
 					(message) => {
-						if (Buffer.isBuffer(message) === true) {
-							message = message.toString();
-						}
-
 						strictEqual(
-							message,
+							messageStringify(message),
 							'4group{"foo":"bar"}',
 						);
 
