@@ -67,6 +67,30 @@ describe('ExtWS using ws', () => {
 		return promise;
 	});
 
+	it('broadcast', () => {
+		const promise = new Promise((resolve) => {
+			ws_client.once(
+				'message',
+				(message) => {
+					if (Buffer.isBuffer(message) === true) {
+						message = message.toString();
+					}
+
+					strictEqual(
+						message,
+						'4{"foo":"bar"}',
+					);
+
+					resolve();
+				},
+			);
+		});
+
+		ws_client.send('4broadcast');
+
+		return promise;
+	});
+
 	describe('groups', () => {
 		it('message for a group', function () {
 			this.slow(250);
@@ -149,30 +173,6 @@ describe('ExtWS using ws', () => {
 
 			return promise;
 		});
-	});
-
-	it('broadcast', () => {
-		const promise = new Promise((resolve) => {
-			ws_client.once(
-				'message',
-				(message) => {
-					if (Buffer.isBuffer(message) === true) {
-						message = message.toString();
-					}
-
-					strictEqual(
-						message,
-						'4{"foo":"bar"}',
-					);
-
-					resolve();
-				},
-			);
-		});
-
-		ws_client.send('4broadcast');
-
-		return promise;
 	});
 
 	after(() => {
