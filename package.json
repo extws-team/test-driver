@@ -1,0 +1,43 @@
+{
+	"name": "@extws/test-driver",
+	"version": "0.1.0-beta.1",
+	"description": "Test ExtWS drivers.",
+	"publishConfig": {
+		"access": "public",
+		"tag": "beta"
+	},
+	"type": "module",
+	"exports": {
+		"./server": "./src/server.js",
+		"./client": "./src/client.js"
+	},
+	"engines": {
+		"node": ">=16.0.0"
+	},
+	"dependencies": {
+		"ws": "8.13.0",
+		"mocha": "10.2.0"
+	},
+	"peerDependencies": {
+		"@extws/server": "^0.1.0-beta.3"
+	},
+	"devDependencies": {
+		"@babel/eslint-parser": "7.21.8",
+		"eslint": "8.41.0",
+		"eslint-config-xo": "0.43.1",
+		"eslint-plugin-import": "2.27.5",
+		"eslint-plugin-node": "11.1.0",
+		"eslint-plugin-promise": "6.1.1",
+		"eslint-plugin-unicorn": "47.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/extws-team/test-driver.git"
+	},
+	"author": "Daniil Kirichenko (https://twitter.com/kirickme)",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/extws-team/test-driver/issues"
+	},
+	"homepage": "https://github.com/extws-team/test-driver#readme"
+}
