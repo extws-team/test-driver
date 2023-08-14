@@ -1,15 +1,16 @@
 {
 	"name": "@extws/test-driver",
-	"version": "0.1.0-beta.4",
+	"version": "0.1.0-beta.5",
 	"description": "Test ExtWS drivers.",
 	"publishConfig": {
 		"access": "public",
 		"tag": "beta"
 	},
+    "main": "./src/main.js",
 	"type": "module",
 	"exports": {
-		"./server": "./src/server.js",
-		"./client": "./src/client.js"
+        ".": "./src/main.js",
+		"./mocha": "./src/integrations/mocha.js"
 	},
 	"engines": {
 		"node": ">=16.0.0"

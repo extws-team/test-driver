@@ -1,184 +1,64 @@
 
 import {
-	describe,
-	after,
-	it      }          from 'mocha';
-import { strictEqual } from 'node:assert/strict';
-import WebSocket       from 'ws';
+	SERVER_PORT,
+	payloadStringify } from './consts.js';
 
-let ws_client;
+let { WebSocket } = globalThis;
 
-function messageStringify(message) {
-	if (typeof message === 'string') {
-		return message;
+export default async function ({
+	closable = false,
+} = {}) {
+	if (!WebSocket) {
+		const module_ws = await import('ws');
+		WebSocket = module_ws.default;
 	}
 
-	if (Buffer.isBuffer(message) === true) {
-		return message.toString();
-	}
+	const ws_client = new WebSocket(`ws://localhost:${SERVER_PORT}/ws`);
 
-	throw new Error('Invalid message');
-}
-
-describe('ExtWS using ws', () => {
-	it('client connect', () => {
-		ws_client = new WebSocket('ws://localhost:18365/ws');
-
-		const promise = Promise.all([
-			new Promise((resolve) => {
-				ws_client.on(
-					'open',
-					() => {
-						resolve();
-					},
-				);
-			}),
-			new Promise((resolve) => {
-				ws_client.once(
-					'message',
-					(message) => {
-						if (messageStringify(message).startsWith('1{') === true) {
-							resolve();
-						}
-						else {
-							throw new Error('Invalid message');
-						}
-					},
-				);
-			}),
-		]);
-
-		return promise;
-	});
-
-	it('client send & receive messages', () => {
-		const promise = new Promise((resolve) => {
-			ws_client.once(
-				'message',
-				(message) => {
-					if (Buffer.isBuffer(message) === true) {
-						message = message.toString();
-					}
-
-					strictEqual(
-						message,
-						'4greeting{"greeting":"Hello, world!"}',
-					);
-
-					resolve();
-				},
-			);
-		});
-
-		ws_client.send('4greeting{"name":"world"}');
-
-		return promise;
-	});
-
-	it('broadcast', () => {
-		const promise = new Promise((resolve) => {
-			ws_client.once(
-				'message',
-				(message) => {
-					strictEqual(
-						messageStringify(message),
-						'4{"foo":"bar"}',
-					);
-
-					resolve();
-				},
-			);
-		});
-
-		ws_client.send('4broadcast');
-
-		return promise;
-	});
-
-	describe('groups', () => {
-		it('message for a group', function () {
-			this.slow(250);
-
-			const promise = new Promise((resolve) => {
-				ws_client.once(
-					'message',
-					(message) => {
-						strictEqual(
-							messageStringify(message),
-							'4group{"foo":"bar"}',
-						);
-
-						resolve();
-					},
-				);
-			});
-
-			ws_client.send('4joinGroup{"name":"group"}');
-
-			setTimeout(
-				() => {
-					ws_client.send('4sendToGroup{"name":"group"}');
-				},
-				100,
-			);
-
-			return promise;
-		});
-		it('message for another group', function () {
-			this.slow(1050);
-
-			const promise = new Promise((resolve) => {
-				ws_client.once(
-					'message',
-					() => {
-						throw new Error('Received message for another group');
-					},
-				);
-
-				setTimeout(
-					() => resolve(),
-					500,
-				);
-			});
-
-			ws_client.send('4sendToGroup{"name":"another-group"}');
-
-			return promise;
-		});
-		it('message for a group after leave', function () {
-			this.slow(1250);
-
-			const promise = new Promise((resolve) => {
-				ws_client.once(
-					'message',
-					() => {
-						throw new Error('Received message for a group after leave');
-					},
-				);
-
-				setTimeout(
-					() => resolve(),
-					500,
-				);
-			});
-
-			ws_client.send('4leaveGroup{"name":"group"}');
-
-			setTimeout(
-				() => {
-					ws_client.send('4sendToGroup{"name":"group"}');
-				},
-				100,
-			);
-
-			return promise;
-		});
-	});
-
-	after(() => {
-		setTimeout(
-			() => process.exit(0), // eslint-disable-line no-process-exit, unicorn/no-process-exit
-			1000,
+	ws_client.addEventListener(
+		'error',
+		(error) => {
+			throw error;
+		},
+	);
+	if (!closable) {
+		ws_client.addEventListener(
+			'close',
+			() => {
+				throw new Error('Connection closed.');
+			},
 		);
-	});
-});
+	}
+
+	await Promise.all([
+		new Promise((resolve) => {
+			ws_client.addEventListener(
+				'open',
+				() => {
+					resolve();
+				},
+				{
+					once: true,
+				},
+			);
+		}),
+		new Promise((resolve) => {
+			ws_client.addEventListener(
+				'message',
+				({ data }) => {
+					if (payloadStringify(data).startsWith('1{') === true) {
+						resolve();
+					}
+					else {
+						throw new Error('Invalid payload received while connecting to server.');
+					}
+				},
+				{
+					once: true,
+				},
+			);
+		}),
+	]);
+
+	return ws_client;
+}
